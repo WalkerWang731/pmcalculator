@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CRM关键路径计算</title>
+    <link type="text/css" rel="stylesheet" href="../static/layui/css/layui.css" />
+	<link type="text/css" rel="stylesheet" href="../static/pmcalculator/css/main.css" />
+</head>
+<body>
+	<div id="main-div">
+		<button class="layui-btn layui-btn-primary layui-btn-sm" onclick="add_template()"><i class="layui-icon layui-icon-add-circle"></i></button>
+		<form class="layui-form" action="">
+		
+			<div id="calculator-form">
+				
+				<div class="layui-form-item calculator-input">
+				  <div class="layui-inline">
+					<label class="layui-form-label">工作</label>
+					<div class="layui-input-inline" style="width: 100px;">
+					  <input type="text" name="source" placeholder="" valautocomplete="off" class="layui-input">
+					</div>
+					<div class="layui-form-mid">-</div>
+					<div class="layui-input-inline" style="width: 100px;">
+					  <input type="text" name="target" placeholder="" autocomplete="off" class="layui-input">
+					</div>
+				  </div>
+				  
+				  <div class="layui-inline">
+					<label class="layui-form-label">期限</label>
+					<div class="layui-input-inline" style="width: 100px;">
+					  <input type="text" name="term" autocomplete="off" class="layui-input">
+					</div>
+					<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="reduce_template(this)" style="margin-top: 8px;">
+						<i class="layui-icon layui-icon-reduce-circle"></i>
+						</a>
+				  </div>
+				</div>
+				
+		  </div>
+		  
+		  
+		  <div class="layui-form-item">
+		    <div class="layui-input-block">
+		      <a class="layui-btn" onclick="calcultor()">计算</a>
+		      <a class="layui-btn layui-btn-primary" onclick="reset()">重置</a>
+		    </div>
+		  </div>
+		</form>
+
+		
+		<table class="layui-table" id='results-table' style="display: none;padding: 1rem;">
+		  <thead>
+		    <tr>
+		      <th>节点</th>
+		      <th>最早时间</th>
+		      <th>最晚时间</th>
+		    </tr> 
+		  </thead>
+		  <tbody id="results-tbody">
+
+		  </tbody>
+		</table>
+		
+		<div id="main-graph" style="width:100%;height:768px;margin-top: 10px;"></div>
+	</div>
+
+<div id="template-form-input" style="display: none;">
+	<div class="layui-form-item calculator-input">
+	  <div class="layui-inline">
+		<label class="layui-form-label">工作</label>
+		<div class="layui-input-inline" style="width: 100px;">
+		  <input type="text" name="source" placeholder="" valautocomplete="off" class="layui-input">
+		</div>
+		<div class="layui-form-mid">-</div>
+		<div class="layui-input-inline" style="width: 100px;">
+		  <input type="text" name="target" placeholder="" autocomplete="off" class="layui-input">
+		</div>
+	  </div>
+	  
+	  <div class="layui-inline">
+		<label class="layui-form-label">期限</label>
+		<div class="layui-input-inline" style="width: 100px;">
+		  <input type="text" name="term" autocomplete="off" class="layui-input">
+		</div>
+		<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="reduce_template(this)" style="margin-top: 8px;">
+			<i class="layui-icon layui-icon-reduce-circle"></i>
+			</a>
+	  </div>
+	</div>
+	
+</div>
+	
+<script type="text/javascript" src="../static/jquery/jquery-3.4.1.js"></script>
+<script type="text/javascript" src="../static/layui/layui.all.js"></script>
+<script type="text/javascript" src="../static/format/format.js" ></script>
+<script type="text/javascript" src="../static/echarts/echarts.js"></script>
+<script type="text/javascript" src="../static/pmcalculator/js/crm.js" ></script>
+<script type="text/javascript">
+	function reset(){
+		localStorage.removeItem("crm_form_data")
+		location.reload()
+	}
+	
+	function save_data(){
+		var _s = $('#calculator-form').html().replace(/[\r\n\t]/g,"");
+		return localStorage.setItem("crm_form_data", _s)
+	}
+	
+	function get_data(){
+		var crm_form_data = localStorage.getItem("crm_form_data")
+		if(isEmpty(crm_form_data) == false){
+			$('#calculator-form').html(crm_form_data)
+		}
+	}
+	
+	function isEmpty(a){
+		if (a === "") return true; 
+		if (a === "null") return true; 
+		if (a === "undefined") return true; 
+		if (!a && a !== 0 && a !=="") return true;
+		if (Array.prototype.isPrototypeOf(a) && a.length === 0 ) return true;
+		if (Object.prototype.isPrototypeOf(a) && Object.keys(a).length === 0 ) return true;  
+		return false;
+	}
+
+	function add_template(){
+		$('#calculator-form').append($('#template-form-input').html())
+	}
+	
+	function reduce_template(obj){
+		$(obj).parents('.calculator-input').remove()
+	}
+	
+	function calcultor(){
+		$('#results-tbody tr').each(function(){
+			$(this).remove()
+		})
+		var tmp = [];
+		var data = [];
+		$('#calculator-form input').each(function(){
+			tmp.push($(this).val())
+			$(this).attr('value', $(this).val())
+			if(tmp.length == 3){
+				data.push(tmp)
+				tmp = [];
+			}
+		})
+		
+		var crm_obj = new CRM;
+		for(var i in data){
+			if(isEmpty(data[i][0]) == false && isEmpty(data[i][1]) == false && isEmpty(data[i][2]) == false){
+				crm_obj.add_data(data[i][0].toUpperCase(), data[i][1].toUpperCase(), parseInt(data[i][2]))
+			}
+		}
+		crm_obj.generate_graph()
+		var s = '';
+		for(var key in crm_obj.node_weight){
+			s = '<tr><td>${node_name}</td><td>${max}</td><td>${min}</td></tr>'.format({
+				node_name:key,
+				max:crm_obj.node_weight[key][0],
+				min:crm_obj.node_weight[key][1]
+			})
+			$('#results-tbody').append(s);
+		}
+
+		$('#results-table').show();
+		draw_graph(crm_obj)
+		save_data()
+	}
+		
+	function draw_graph(crm_obj){
+		var myChart = echarts.init(document.getElementById('main-graph'));
+		var obj = crm_obj;
+		console.log(obj)
+		// 指定图表的配置项和数据
+		option = {
+		  title: {
+			text: 'CRM 关键路径图'
+		  },
+		  tooltip: {},
+		  animationDurationUpdate: 1500,
+		  animationEasingUpdate: 'quinticInOut',
+		  series: [
+			{
+			  type: 'graph',
+			  layout: 'none',
+			  symbolSize: 20,
+			  roam: true,
+			  label: {
+				show: true
+			  },
+			  edgeSymbol: ['circle', 'arrow'],
+			  edgeSymbolSize: [4, 10],
+			  edgeLabel: {
+				fontSize: 20
+			  },
+			  data: obj.data,
+			  links: obj.links,
+			  lineStyle: {
+				opacity: 0.9,
+				width: 2,
+				curveness: 0
+			  }
+			}
+		  ]
+		};
+
+	myChart.setOption(option);
+	}
+	
+	get_data()
+</script>
+</body>
+</html>
