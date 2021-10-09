@@ -38,6 +38,13 @@
 				
 		  </div>
 		  
+		  <div class="layui-form-item">
+		    <label class="layui-form-label">小数点精度</label>
+		    <div class="layui-input-inline" style="width: 70px;">
+		      <input type="text" name="to_fixed_count" placeholder="" autocomplete="off" class="layui-input" id="to_fixed_count" value="1">
+		    </div>
+		    <div class="layui-form-mid layui-word-aux">默认保留1位 (四舍五入，0为取整)</div>
+		  </div>
 		  
 		  <div class="layui-form-item">
 		    <div class="layui-input-block">
@@ -48,7 +55,7 @@
 		</form>
 
 		
-		<table class="layui-table" id='results-table' style="display: none;padding: 1rem;">
+		<table class="layui-table" id='results-table1' style="display: none;padding: 1rem;">
 		  <thead>
 		    <tr>
 		      <th>节点</th>
@@ -56,8 +63,22 @@
 		      <th>最晚时间</th>
 		    </tr> 
 		  </thead>
-		  <tbody id="results-tbody">
+		  <tbody id="results-tbody1">
 
+		  </tbody>
+		</table>
+		
+		
+		<table class="layui-table" id='results-table2' style="display: none;padding: 1rem;">
+		  <thead>
+		    <tr>
+		      <th>工作</th>
+		      <th>期限</th>
+		      <th>关键路径</th>
+		    </tr> 
+		  </thead>
+		  <tbody id="results-tbody2">
+		
 		  </tbody>
 		</table>
 		
@@ -132,9 +153,6 @@
 	}
 	
 	function calcultor(){
-		$('#results-tbody tr').each(function(){
-			$(this).remove()
-		})
 		var tmp = [];
 		var data = [];
 		$('#calculator-form input').each(function(){
@@ -152,20 +170,63 @@
 				crm_obj.add_data(data[i][0].toUpperCase(), data[i][1].toUpperCase(), parseInt(data[i][2]))
 			}
 		}
+		
+		var to_fixed_count = parseInt($('#to_fixed_count').val())
+		
+		// 生成crm图数据
+		crm_obj.to_fixed_count = to_fixed_count
 		crm_obj.generate_graph()
+		
+		
 		var s = '';
+		
+		// 生成节点信息表
+		$('#results-tbody1 tr').each(function(){
+			$(this).remove()
+		})
 		for(var key in crm_obj.node_weight){
 			s = '<tr><td>${node_name}</td><td>${max}</td><td>${min}</td></tr>'.format({
 				node_name:key,
 				max:crm_obj.node_weight[key][0],
 				min:crm_obj.node_weight[key][1]
 			})
-			$('#results-tbody').append(s);
+			$('#results-tbody1').append(s);
 		}
 
-		$('#results-table').show();
+		$('#results-table1').show();
+		
+		
+		// 生成关键路径表
+		$('#results-tbody2 tr').each(function(){
+			$(this).remove()
+		})
+		for(var i in crm_obj.links){
+			if(crm_obj.links[i]['private']['iskey'] == true){
+				s = '<tr class="kay-path"><td>${source} - ${target}</td><td>${term}</td><td>${iskey}</td></tr>'.format({
+					source:crm_obj.links[i]['source'],
+					target:crm_obj.links[i]['target'],
+					term:crm_obj.links[i]['private']['term'],
+					iskey:'是'
+				})
+			}else{
+				s = '<tr><td>${source} - ${target}</td><td>${term}</td><td></td></tr>'.format({
+					source:crm_obj.links[i]['source'],
+					target:crm_obj.links[i]['target'],
+					term:crm_obj.links[i]['private']['term'],
+				})
+			}
+
+			$('#results-tbody2').append(s);
+		}
+		
+		$('#results-table2').show();
+		
+		
+		
+		
+		
 		draw_graph(crm_obj)
-		save_data()
+		// save_data()
 	}
 		
 	function draw_graph(crm_obj){

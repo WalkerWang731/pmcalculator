@@ -1,3 +1,19 @@
 #main-div{
 	padding: 1.25rem;
 }
+
+.layui-form-label{
+	padding: 9px 9px;
+}
+
+.kay-path{
+	color: red;
+}
+
+.font-red{
+	color: red;
+}
+
+.font-bold{
+	font-weight: 700;
+}

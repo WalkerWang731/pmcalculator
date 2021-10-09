@@ -24,3 +24,26 @@ String.prototype.format = function(opts) {//use 'my name is ${name}'.format({nam
     }
     return this;
 };
+
+
+
+
+
+
+function MyRender(){
+	this.html = '';
+	
+	this.render = _render; 
+	this.parse_html = _parse_html;
+}
+
+function _render(obj){
+	var _h = this.html
+	return _h.format(obj)
+}
+
+
+
+function _parse_html(html){
+	this.html = html.replace(/[\r\n\t]/g,"");
+}

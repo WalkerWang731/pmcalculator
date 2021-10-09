@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PERT进度计算</title>
+    <link type="text/css" rel="stylesheet" href="../static/layui/css/layui.css" />
+	<link type="text/css" rel="stylesheet" href="../static/pmcalculator/css/main.css" />
+	
+</head>
+<body>
+	<div id="main-div">
+		<button class="layui-btn layui-btn-primary layui-btn-sm" onclick="add_template()"><i class="layui-icon layui-icon-add-circle"></i></button>
+		<form class="layui-form" action="">
+			<div id="calculator-form">
+
+				<div class="layui-form-item">
+				  <label class="layui-form-label">目标期限</label>
+				  <div class="layui-input-inline">
+				    <input type="text" name="term_target" placeholder="" autocomplete="off" class="layui-input" id="term_target">
+				  </div>
+				  <div class="layui-form-mid layui-word-aux">题目给出的选项, 用于计算 "项目平均差" "标准偏差" "平均偏差"</div>
+				</div>
+				
+				
+				<div class="layui-form-item calculator-input">
+				  <div class="layui-inline">
+					<label class="layui-form-label">工作</label>
+					<div class="layui-input-inline" style="width: 70px;">
+					  <input type="text" name="source" placeholder="" valautocomplete="off" class="layui-input">
+					</div>
+					<div class="layui-form-mid">-</div>
+					<div class="layui-input-inline" style="width: 70px;">
+					  <input type="text" name="target" placeholder="" autocomplete="off" class="layui-input">
+					</div>
+				  </div>
+				  
+				  <div class="layui-inline">
+					<label class="layui-form-label">乐观预期</label>
+					<div class="layui-input-inline" style="width: 70px;">
+						<input type="text" name="term_a" autocomplete="off" class="layui-input">
+					</div>
+					<label class="layui-form-label">正常预期</label>
+					<div class="layui-input-inline" style="width: 70px;">
+						<input type="text" name="term_m" autocomplete="off" class="layui-input">
+					</div>
+					<label class="layui-form-label">悲观预期</label>
+					<div class="layui-input-inline" style="width: 70px;">
+						<input type="text" name="term_b" autocomplete="off" class="layui-input">
+					</div>
+					<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="reduce_template(this)" style="margin-top: 8px;">
+						<i class="layui-icon layui-icon-reduce-circle"></i>
+						</a>
+				  </div>
+				</div>
+				
+		  </div>
+		  
+		  <div class="layui-form-item">
+		    <label class="layui-form-label" style="width: 120px;">小数点精度</label>
+		    <div class="layui-input-inline" style="width: 70px;">
+		      <input type="text" name="to_fixed_count" placeholder="" autocomplete="off" class="layui-input" id="to_fixed_count" value="1">
+		    </div>
+		    <div class="layui-form-mid layui-word-aux">默认保留1位 (四舍五入，0为取整)</div>
+		  </div>
+		  
+		  <div class="layui-form-item">
+		    <label class="layui-form-label" style="width: 120px;">项目差小数点精度</label>
+		    <div class="layui-input-inline" style="width: 70px;">
+		      <input type="text" name="to_fixed_count" placeholder="" autocomplete="off" class="layui-input" id="to_fixed_count_dev" value="2">
+		    </div>
+		    <div class="layui-form-mid layui-word-aux">默认保留2位 (四舍五入，0为取整)</div>
+		  </div>
+		  
+		  <div class="layui-form-item">
+		    <div class="layui-input-block">
+		      <a class="layui-btn" onclick="calcultor()">计算</a>
+		      <a class="layui-btn layui-btn-primary" onclick="reset()">重置</a>
+		    </div>
+		  </div>
+		</form>
+
+		
+		<table class="layui-table" id='results-table1' style="display: none;padding: 1rem;">
+		  <thead>
+		    <tr>
+		      <th>节点</th>
+		      <th>最早时间</th>
+		      <th>最晚时间</th>
+		    </tr> 
+		  </thead>
+		  <tbody id="results-tbody1">
+
+		  </tbody>
+		</table>
+		
+		<table class="layui-table" id='results-table2' style="display: none;padding: 1rem;">
+		  <thead>
+		    <tr>
+		      <th>工作</th>
+		      <th>乐观预期</th>
+		      <th>正常预期</th>
+			  <th>悲观预期</th>
+			  <th>贝塔平均值(工作平均期限)</th>
+			  <th>贝塔SD值(工作标准偏差)</th>
+			  <th>关键路径</th>
+		    </tr> 
+		  </thead>
+		  <tbody id="results-tbody2">
+		
+		  </tbody>
+		</table>
+		
+		<blockquote class="layui-elem-quote" id="result3" style="display: none;">
+			<p>目标完成时间: <span class="font-red font-bold" id="result3-term_target"></span></p>
+			<p>项目平均值: <span class="font-red font-bold" id="result3-term_avg"></span> (关键路径 贝塔平均值 求和)</p>
+			<p>项目标准偏差: <span class="font-red font-bold" id="result3-term_dev_std"></span> (关键路径 贝塔SD值 的平方 求和 开方)</p>
+			<p>项目平均差: <span class="font-red font-bold" id="result3-term_avg_dev"></span> (目标完成时间 - 项目平均值)</p>
+			<p>项目标准平均差: <span class="font-red font-bold" id="result3-term_avg_dev_std"></span> (项目平均差 / 项目标准偏差)</p>
+		</blockquote>
+
+		<div id="main-graph" style="width:100%;height:768px;margin-top: 10px;"></div>
+	</div>
+
+<div id="template-form-input" style="display: none;">
+	
+	<div class="layui-form-item calculator-input">
+	  <div class="layui-inline">
+		<label class="layui-form-label">工作</label>
+		<div class="layui-input-inline" style="width: 70px;">
+		  <input type="text" name="source" placeholder="" valautocomplete="off" class="layui-input">
+		</div>
+		<div class="layui-form-mid">-</div>
+		<div class="layui-input-inline" style="width: 70px;">
+		  <input type="text" name="target" placeholder="" autocomplete="off" class="layui-input">
+		</div>
+	  </div>
+	  
+	  <div class="layui-inline">
+		<label class="layui-form-label">乐观预期</label>
+		<div class="layui-input-inline" style="width: 70px;">
+			<input type="text" name="term_a" autocomplete="off" class="layui-input">
+		</div>
+		<label class="layui-form-label">正常预期</label>
+		<div class="layui-input-inline" style="width: 70px;">
+			<input type="text" name="term_m" autocomplete="off" class="layui-input">
+		</div>
+		<label class="layui-form-label">悲观预期</label>
+		<div class="layui-input-inline" style="width: 70px;">
+			<input type="text" name="term_b" autocomplete="off" class="layui-input">
+		</div>
+		<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="reduce_template(this)" style="margin-top: 8px;">
+			<i class="layui-icon layui-icon-reduce-circle"></i>
+			</a>
+	  </div>
+				  
+				  
+	</div>
+	
+</div>
+
+
+
+
+
+
+<table id="results-tbody2-template" style="display: none;">
+	<tr class="${class}">
+		<td>${source} - ${target}</td>
+		<td>${term_a}</td>
+		<td>${term_m}</td>
+		<td>${term_b}</td>
+		<td>${term_beta_avg}</td>
+		<td>${term_beta_sd}</td>
+		<td>${iskey}</td>
+	</tr>
+</table>
+	
+<script type="text/javascript" src="../static/jquery/jquery-3.4.1.js"></script>
+<script type="text/javascript" src="../static/layui/layui.all.js"></script>
+<script type="text/javascript" src="../static/format/format.js" ></script>
+<script type="text/javascript" src="../static/echarts/echarts.js"></script>
+<script type="text/javascript" src="../static/pmcalculator/js/crm.js" ></script>
+<script type="text/javascript" src="../static/pmcalculator/js/pert.js" ></script>
+<script type="text/javascript">
+	function reset(){
+		localStorage.removeItem("pert_form_data")
+		location.reload()
+	}
+	
+	function save_data(){
+		var _s = $('#calculator-form').html().replace(/[\r\n\t]/g,"");
+		return localStorage.setItem("pert_form_data", _s)
+	}
+	
+	function get_data(){
+		var pert_form_data = localStorage.getItem("pert_form_data")
+		if(isEmpty(pert_form_data) == false){
+			$('#calculator-form').html(pert_form_data)
+		}
+	}
+	
+	function isEmpty(a){
+		if (a === "") return true; 
+		if (a === "null") return true; 
+		if (a === "undefined") return true; 
+		if (!a && a !== 0 && a !=="") return true;
+		if (Array.prototype.isPrototypeOf(a) && a.length === 0 ) return true;
+		if (Object.prototype.isPrototypeOf(a) && Object.keys(a).length === 0 ) return true;  
+		return false;
+	}
+
+	function add_template(){
+		$('#calculator-form').append($('#template-form-input').html())
+	}
+	
+	function reduce_template(obj){
+		$(obj).parents('.calculator-input').remove()
+	}
+	
+	function calcultor(){
+		var tmp = [];
+		var data = [];
+		var term_target = 0;
+		$('#calculator-form input').each(function(){
+			$(this).attr('value', $(this).val())
+			if($(this).attr('name') == 'term_target'){
+				term_target = $(this).val()
+				return
+			}
+			tmp.push($(this).val())
+			if(tmp.length == 5){
+				data.push(tmp)
+				tmp = [];
+			}
+		})
+		var to_fixed_count = parseInt($('#to_fixed_count').val())
+		var pert_obj = new PERT()
+		pert_obj.to_fixed_count = to_fixed_count;
+		pert_obj.term_target = term_target;
+		console.log(data)
+		for(var i in data){
+			pert_obj.add_data(data[i]);
+		}
+		pert_obj.render_crm_list()
+		console.log(pert_obj)
+		
+		var crm_obj = new CRM;
+		crm_obj.to_fixed_count = to_fixed_count
+		crm_obj.crm_list = pert_obj.crm_list
+		
+		create_crm(crm_obj)
+
+		var myrender = new MyRender()
+		myrender.parse_html($('#results-tbody2-template tbody').html())
+		for(var i in crm_obj.links){
+			if(crm_obj.links[i]['private']['iskey'] == true){
+				$('#results-tbody2').append(myrender.render({
+					class: 'kay-path',
+					source: crm_obj.links[i]['source'],
+					target: crm_obj.links[i]['target'],
+					term_a: crm_obj.links[i]['private']['origin_data'][3]['term_a'],
+					term_m: crm_obj.links[i]['private']['origin_data'][3]['term_m'],
+					term_b: crm_obj.links[i]['private']['origin_data'][3]['term_b'],
+					term_beta_avg: crm_obj.links[i]['private']['origin_data'][3]['term_beta_avg'],
+					term_beta_sd: crm_obj.links[i]['private']['origin_data'][3]['term_beta_sd'],
+					iskey: '是'
+				}));
+			}else{
+				$('#results-tbody2').append(myrender.render({
+					class: '',
+					source: crm_obj.links[i]['source'],
+					target: crm_obj.links[i]['target'],
+					term_a: crm_obj.links[i]['private']['origin_data'][3]['term_a'],
+					term_m: crm_obj.links[i]['private']['origin_data'][3]['term_m'],
+					term_b: crm_obj.links[i]['private']['origin_data'][3]['term_b'],
+					term_beta_avg: crm_obj.links[i]['private']['origin_data'][3]['term_beta_avg'],
+					term_beta_sd: crm_obj.links[i]['private']['origin_data'][3]['term_beta_sd'],
+					iskey: ''
+				}));
+			}
+
+		}
+		$('#results-table2').show()
+		
+		
+		// 开始计算各种偏差值
+		pert_obj.crm_links = crm_obj.links
+		var to_fixed_count_dev = parseInt($('#to_fixed_count_dev').val())
+		pert_obj.to_fixed_count = to_fixed_count_dev
+		pert_obj.calculate_term()
+		pert_obj.to_fixed_count = to_fixed_count
+		$('#result3-term_target').text(pert_obj.term_target)
+		$('#result3-term_avg').text(pert_obj.term_avg)
+		$('#result3-term_dev_std').text(pert_obj.term_dev_std)
+		$('#result3-term_avg_dev').text(pert_obj.term_avg_dev)
+		$('#result3-term_avg_dev_std').text(pert_obj.term_avg_dev_std)
+		$('#result3').show()
+		// save_data()
+	}
+	
+	function create_crm(crm_obj){
+		crm_obj.generate_graph()
+		
+		var s = '';
+		
+		// 生成节点信息表
+		$('#results-tbody1 tr').each(function(){
+			$(this).remove()
+		})
+		for(var key in crm_obj.node_weight){
+			s = '<tr><td>${node_name}</td><td>${max}</td><td>${min}</td></tr>'.format({
+				node_name:key,
+				max:crm_obj.node_weight[key][0],
+				min:crm_obj.node_weight[key][1]
+			})
+			$('#results-tbody1').append(s);
+		}
+		
+		$('#results-table1').show();
+		draw_graph(crm_obj)
+	}
+		
+	function draw_graph(crm_obj){
+		var myChart = echarts.init(document.getElementById('main-graph'));
+		var obj = crm_obj;
+		console.log(obj)
+		// 指定图表的配置项和数据
+		option = {
+		  title: {
+			text: 'CRM 关键路径图'
+		  },
+		  tooltip: {},
+		  animationDurationUpdate: 1500,
+		  animationEasingUpdate: 'quinticInOut',
+		  series: [
+			{
+			  type: 'graph',
+			  layout: 'none',
+			  symbolSize: 20,
+			  roam: true,
+			  label: {
+				show: true
+			  },
+			  edgeSymbol: ['circle', 'arrow'],
+			  edgeSymbolSize: [4, 10],
+			  edgeLabel: {
+				fontSize: 20
+			  },
+			  data: obj.data,
+			  links: obj.links,
+			  lineStyle: {
+				opacity: 0.9,
+				width: 2,
+				curveness: 0
+			  }
+			}
+		  ]
+		};
+
+	myChart.setOption(option);
+	}
+	get_data()
+</script>
+</body>
+</html>

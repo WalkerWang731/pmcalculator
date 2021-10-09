@@ -10,6 +10,9 @@ function CRM(){
 	this.get_node_links_info = _get_node_links_info;
 	this.generate_target_node = _generate_target_node;
 	this.calculate_path = _calculate_path;
+	this.convert_num = _convert_num;
+	
+	this.to_fixed_count = 0; 	// 默认小数精度
 	
 	this.bigest = {
 		'x': 0,
@@ -175,8 +178,9 @@ function _generate_graph(){
 			'source': _crm_list[i][0],
 			'target': _crm_list[i][1],
 			'private': {
-				'trem': _crm_list[i][2],
-				'iskey': false
+				'term': _crm_list[i][2],
+				'iskey': false,
+				'origin_data': _crm_list[i]
 			}
 		})
 	}
@@ -185,17 +189,28 @@ function _generate_graph(){
 	
 }
 
+function _convert_num(num){
+	if(this.to_fixed_count == 0){
+		var _n = parseInt(num.toFixed(this.to_fixed_count))
+	}else{
+		var _n = parseFloat(num.toFixed(this.to_fixed_count))
+	}
+	return _n
+}
+
 
 
 function _calculate_path(){
 	// 正向计算最大的节点
 	for(var i in this.links){
 		if(this.node_weight[this.links[i]['target']][0] == 0){
-			this.node_weight[this.links[i]['target']][0] = this.node_weight[this.links[i]['source']][0] + this.links[i]['private']['trem']
+			this.node_weight[this.links[i]['target']][0] = this.node_weight[this.links[i]['source']][0] + this.links[i]['private']['term']
+			this.node_weight[this.links[i]['target']][0] = this.convert_num(this.node_weight[this.links[i]['target']][0])
 			continue
 		}
-		if(this.node_weight[this.links[i]['source']][0] + this.links[i]['private']['trem'] > this.node_weight[this.links[i]['target']][0]){
-			this.node_weight[this.links[i]['target']][0] = this.node_weight[this.links[i]['source']][0] + this.links[i]['private']['trem']
+		if(this.node_weight[this.links[i]['source']][0] + this.links[i]['private']['term'] > this.node_weight[this.links[i]['target']][0]){
+			this.node_weight[this.links[i]['target']][0] = this.node_weight[this.links[i]['source']][0] + this.links[i]['private']['term']
+			this.node_weight[this.links[i]['target']][0] = this.convert_num(this.node_weight[this.links[i]['target']][0])
 		}
 	}
 	
@@ -207,11 +222,13 @@ function _calculate_path(){
 			this.node_weight[this.links[i]['target']][1] = this.node_weight[this.links[i]['target']][0]
 		}
 		if(this.node_weight[this.links[i]['source']][1] == 0){
-			this.node_weight[this.links[i]['source']][1] = this.node_weight[this.links[i]['target']][1] - this.links[i]['private']['trem']
+			this.node_weight[this.links[i]['source']][1] = this.node_weight[this.links[i]['target']][1] - this.links[i]['private']['term']
+			this.node_weight[this.links[i]['source']][1] = this.convert_num(this.node_weight[this.links[i]['source']][1])
 			continue
 		}
-		if(this.node_weight[this.links[i]['target']][1] - this.links[i]['private']['trem'] < this.node_weight[this.links[i]['source']][1]){
-			this.node_weight[this.links[i]['source']][1] = this.node_weight[this.links[i]['target']][1] - this.links[i]['private']['trem']
+		if(this.node_weight[this.links[i]['target']][1] - this.links[i]['private']['term'] < this.node_weight[this.links[i]['source']][1]){
+			this.node_weight[this.links[i]['source']][1] = this.node_weight[this.links[i]['target']][1] - this.links[i]['private']['term']
+			this.node_weight[this.links[i]['source']][1] = this.convert_num(this.node_weight[this.links[i]['source']][1])
 		}
 	}
 	this.links.reverse()
