@@ -177,10 +177,15 @@ function _generate_graph(){
 		this.links.push({
 			'source': _crm_list[i][0],
 			'target': _crm_list[i][1],
+			'lineStyle': {
+					'width': 1,
+					'color': 'black',
+			},
 			'private': {
 				'term': _crm_list[i][2],
 				'iskey': false,
-				'origin_data': _crm_list[i]
+				'origin_data': _crm_list[i],
+				'index': i,
 			}
 		})
 	}
@@ -235,16 +240,39 @@ function _calculate_path(){
 		
 		
 	// 计算关键路径
+	var key_path_target = {};
+	
 	for (var i in this.links){
 		if(this.node_weight[this.links[i]['source']][0] == this.node_weight[this.links[i]['source']][1] && 
 		this.node_weight[this.links[i]['target']][0] == this.node_weight[this.links[i]['target']][1]){
-			this.links[i]['lineStyle'] = {
-				'width': 3,
-				'color': 'red',
+			
+			if(this.links[i]['target'] in key_path_target){
+				var _target_weight = this.node_weight[this.links[i]['target']][0]
+				var _previous_path_index = key_path_target[this.links[i]['target']]
+				var _previous_source_weight = this.node_weight[this.links[_previous_path_index]['source']][0]
+				var _current_source_weight = this.node_weight[this.links[i]['source']][0]
+				console.log(this.links[i], _target_weight, _previous_source_weight, _current_source_weight)
+				if(_target_weight - _current_source_weight < _target_weight - _previous_source_weight){
+					
+					this.links[_previous_path_index]['lineStyle']['width'] = 1
+					this.links[_previous_path_index]['lineStyle']['color'] = 'black'
+					this.links[_previous_path_index]['private']['iskey'] = false
+					
+					this.links[i]['lineStyle']['width'] = 3
+					this.links[i]['lineStyle']['color'] = 'red'
+					this.links[i]['private']['iskey'] = true
+					
+					key_path_target[this.links[i]['target']] = i
+				}
+			}else{
+				this.links[i]['lineStyle']['width'] = 3
+				this.links[i]['lineStyle']['color'] = 'red'
+				this.links[i]['private']['iskey'] = true
+				key_path_target[this.links[i]['target']] = i
+				}
+				
 			}
-			this.links[i]['private']['iskey'] = true
-		}
-		
+			
 	}
 	
 	

@@ -116,6 +116,11 @@
 			<p>项目标准偏差: <span class="font-red font-bold" id="result3-term_dev_std"></span> (关键路径 贝塔SD值 的平方 求和 开方)</p>
 			<p>项目平均差: <span class="font-red font-bold" id="result3-term_avg_dev"></span> (目标完成时间 - 项目平均值)</p>
 			<p>项目标准平均差: <span class="font-red font-bold" id="result3-term_avg_dev_std"></span> (项目平均差 / 项目标准偏差)</p>
+			
+			<p>成功率(近似值): <span class="font-red font-bold" id="result3-probability_approximate"></span></p>
+			<p>成功率(系数表查询): <span class="font-red font-bold" id="result3-probability_table"></span> (换算成百分比需要*100)</p>
+			<p>成功率(正态分布区间): <span class="font-red font-bold" id="result3-probability_range"></span></p>
+			
 		</blockquote>
 
 		<div id="main-graph" style="width:100%;height:768px;margin-top: 10px;"></div>
@@ -288,12 +293,16 @@
 		var to_fixed_count_dev = parseInt($('#to_fixed_count_dev').val())
 		pert_obj.to_fixed_count = to_fixed_count_dev
 		pert_obj.calculate_term()
+		pert_obj.get_range()
 		pert_obj.to_fixed_count = to_fixed_count
 		$('#result3-term_target').text(pert_obj.term_target)
 		$('#result3-term_avg').text(pert_obj.term_avg)
 		$('#result3-term_dev_std').text(pert_obj.term_dev_std)
 		$('#result3-term_avg_dev').text(pert_obj.term_avg_dev)
 		$('#result3-term_avg_dev_std').text(pert_obj.term_avg_dev_std)
+		$('#result3-probability_range').text(pert_obj.probability_range)
+		$('#result3-probability_approximate').text(pert_obj.probability_approximate)
+		$('#result3-probability_table').text(pert_obj.probability_table)
 		$('#result3').show()
 		save_data()
 	}
