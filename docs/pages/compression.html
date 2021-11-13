@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>压缩分析</title>
+    <link type="text/css" rel="stylesheet" href="../static/layui/css/layui.css" />
+	<link type="text/css" rel="stylesheet" href="../static/pmcalculator/css/main.css" />
+</head>
+<body>
+	<div id="main-div">
+		<button class="layui-btn layui-btn-primary layui-btn-sm" onclick="add_template()"><i class="layui-icon layui-icon-add-circle"></i></button>
+		<form class="layui-form" action="">
+		
+			<div id="calculator-form">
+				
+				<div class="layui-form-item">
+				  <label class="layui-form-label" style="width: auto;">压缩的目标时间</label>
+				  <div class="layui-input-inline">
+				    <input type="text" name="term_target" placeholder="" autocomplete="off" class="layui-input" id="term_target">
+				  </div>
+				  <div class="layui-form-mid layui-word-aux">题目给出的选项, 压缩后的目标时间，罚款起始时间点，罚款金额，用于衡量边际成本</div>
+				</div>
+				
+				<div class="layui-form-item">
+				  <label class="layui-form-label" style="width: auto;">罚款起始时间点</label>
+				  <div class="layui-input-inline">
+					<input type="text" name="term_target_after" placeholder="" autocomplete="off" class="layui-input" id="term_target_after">
+				  </div>
+				  
+				  <div class="layui-inline">
+					<label class="layui-form-label">罚款金额</label>
+					<div class="layui-input-inline" style="width: 100px;">
+					  <input type="text" name="term_target_after_cost" autocomplete="off" class="layui-input" id="term_target_after_cost">
+					</div>
+				  </div>
+
+				</div>
+				
+				
+				
+				<div class="layui-form-item calculator-input">
+				  <div class="layui-inline">
+					<label class="layui-form-label">工作</label>
+					<div class="layui-input-inline" style="width: 100px;">
+					  <input type="text" name="source" placeholder="" valautocomplete="off" class="layui-input">
+					</div>
+					<div class="layui-form-mid">-</div>
+					<div class="layui-input-inline" style="width: 100px;">
+					  <input type="text" name="target" placeholder="" autocomplete="off" class="layui-input">
+					</div>
+				  </div>
+				  
+				  <div class="layui-inline">
+					<label class="layui-form-label">正常期限</label>
+					<div class="layui-input-inline" style="width: 100px;">
+					  <input type="text" name="term-normal" autocomplete="off" class="layui-input">
+					</div>
+
+				  </div>
+				  
+				  <div class="layui-inline">
+					<label class="layui-form-label">压缩后期限</label>
+					<div class="layui-input-inline" style="width: 100px;">
+						<input type="text" name="term-comp" autocomplete="off" class="layui-input">
+					</div>
+
+				  </div>
+				  
+				  <div class="layui-inline">
+					<label class="layui-form-label">正常成本</label>
+					<div class="layui-input-inline" style="width: 100px;">
+					  <input type="text" name="cost-normal" autocomplete="off" class="layui-input">
+					</div>
+
+				  </div>
+				  
+				  <div class="layui-inline">
+					<label class="layui-form-label">压缩后成本</label>
+					<div class="layui-input-inline" style="width: 100px;">
+						<input type="text" name="cost-comp" autocomplete="off" class="layui-input">
+					</div>
+					<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="reduce_template(this)" style="margin-top: 8px;">
+					<i class="layui-icon layui-icon-reduce-circle"></i>
+					</a>
+				  </div>
+				  
+				</div>
+				
+		  </div>
+		  
+		  <div class="layui-form-item">
+		    <label class="layui-form-label">小数点精度</label>
+		    <div class="layui-input-inline" style="width: 70px;">
+		      <input type="text" name="to_fixed_count" placeholder="" autocomplete="off" class="layui-input" id="to_fixed_count" value="1">
+		    </div>
+		    <div class="layui-form-mid layui-word-aux">默认保留1位 (四舍五入，0为取整)</div>
+		  </div>
+		  
+		  <div class="layui-form-item">
+		    <div class="layui-input-block">
+		      <a class="layui-btn" onclick="calcultor()">计算</a>
+		      <a class="layui-btn layui-btn-primary" onclick="reset()">重置</a>
+		    </div>
+		  </div>
+		</form>
+
+	<div id=result-all style="display: none;">
+		
+		<table class="layui-table" id='results-table1' style="display: none;padding: 1rem;">
+		  <thead>
+		    <tr>
+		      <th>节点</th>
+		      <th>最早时间</th>
+		      <th>最晚时间</th>
+		    </tr> 
+		  </thead>
+		  <tbody id="results-tbody1">
+
+		  </tbody>
+		</table>
+		
+		
+		<table class="layui-table" id='results-table2' style="display: none;padding: 1rem;">
+		  <thead>
+		    <tr>
+		      <th>工作</th>
+		      <th>期限</th>
+		      <th>关键路径</th>
+		    </tr> 
+		  </thead>
+		  <tbody id="results-tbody2">
+		
+		  </tbody>
+		</table>
+		
+		
+		
+		
+		
+		<table class="layui-table" id='results-table3' style="display: none;padding: 1rem;">
+		  <p>压缩顺序和每压缩单位成本计算表</p>
+		  <thead>
+		    <tr>
+		      <th>工作</th>
+		      <th>正常期限</th>
+		      <th>压缩后期限</th>
+			  <th>正常成本</th>
+			  <th>压缩后成本</th>
+			  <th>每单位成本</th>
+			  <th>压缩顺序</th>
+			  <th>关键路径</th>
+		    </tr> 
+		  </thead>
+		  <tbody id="results-tbody3">
+		
+		  </tbody>
+		</table>
+		
+		
+		
+		<table class="layui-table" id='results-table4' style="display: none;padding: 1rem;">
+		  <p>压缩成本边际计算表</p>
+		  <thead>
+		    <tr>
+		      <th>工作</th>
+		      <th>节省的时间</th>
+		      <th>预计总工时</th>
+			  <th>压缩成本</th>
+			  <th>累计压缩成本</th>
+			  <th>累计赔偿</th>
+			  <th>实际总成本</th>
+		    </tr> 
+		  </thead>
+		  <tbody id="results-tbody4">
+		
+		  </tbody>
+		</table>
+		
+		
+		
+	</div>
+		<div id="main-graph" style="width:100%;height:768px;margin-top: 10px;"></div>
+
+</div>
+	
+	
+<table id="results-tbody3-template" style="display: none;">
+	<tr class="${class}">
+		<td>${source} - ${target}</td>
+		<td>${term_normal}</td>
+		<td>${term_comp}</td>
+		<td>${cost_normal}</td>
+		<td>${cost_comp}</td>
+		<td>${cost_avg}</td>
+		<td>${cost_order}</td>
+		<td>${key_path}</td>
+	</tr>
+</table>
+	
+
+<table id="results-tbody4-template" style="display: none;">
+	<tr class="${class}">
+		<td>${source} - ${target}</td>
+		<td>${term_save}</td>
+		<td>${term_total}</td>
+		<td>${cost_comp_really}</td>
+		<td>${cost_comp_total}</td>
+		<td>${cost_compensation}</td>
+		<td>${cost_really_total}</td>
+	</tr>
+</table>
+	
+	
+	
+	
+	
+
+<div id="template-form-input" style="display: none;">
+	<div class="layui-form-item calculator-input">
+	  <div class="layui-inline">
+		<label class="layui-form-label">工作</label>
+		<div class="layui-input-inline" style="width: 100px;">
+		  <input type="text" name="source" placeholder="" valautocomplete="off" class="layui-input">
+		</div>
+		<div class="layui-form-mid">-</div>
+		<div class="layui-input-inline" style="width: 100px;">
+		  <input type="text" name="target" placeholder="" autocomplete="off" class="layui-input">
+		</div>
+	  </div>
+	  
+	  <div class="layui-inline">
+		<label class="layui-form-label">正常期限</label>
+		<div class="layui-input-inline" style="width: 100px;">
+		  <input type="text" name="term-normal" autocomplete="off" class="layui-input">
+		</div>
+
+	  </div>
+	  
+	  <div class="layui-inline">
+		<label class="layui-form-label">压缩后期限</label>
+		<div class="layui-input-inline" style="width: 100px;">
+			<input type="text" name="term-comp" autocomplete="off" class="layui-input">
+		</div>
+
+	  </div>
+	  
+	  <div class="layui-inline">
+		<label class="layui-form-label">正常成本</label>
+		<div class="layui-input-inline" style="width: 100px;">
+		  <input type="text" name="cost-normal" autocomplete="off" class="layui-input">
+		</div>
+
+	  </div>
+	  
+	  <div class="layui-inline">
+		<label class="layui-form-label">压缩后成本</label>
+		<div class="layui-input-inline" style="width: 100px;">
+			<input type="text" name="cost-comp" autocomplete="off" class="layui-input">
+		</div>
+		<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="reduce_template(this)" style="margin-top: 8px;">
+		<i class="layui-icon layui-icon-reduce-circle"></i>
+		</a>
+	  </div>
+	  
+	</div>
+	
+</div>
+	
+<script type="text/javascript" src="../static/jquery/jquery-3.4.1.js"></script>
+<script type="text/javascript" src="../static/layui/layui.all.js"></script>
+<script type="text/javascript" src="../static/format/format.js" ></script>
+<script type="text/javascript" src="../static/echarts/echarts.js"></script>
+<script type="text/javascript" src="../static/pmcalculator/js/crm.js" ></script>
+<script type="text/javascript" src="../static/pmcalculator/js/compression.js" ></script>
+<script type="text/javascript">
+	function reset(){
+		localStorage.removeItem("comperssion_form_data")
+		location.reload()
+	}
+	
+	function save_data(){
+		var _s = $('#calculator-form').html().replace(/[\r\n\t]/g,"");
+		return localStorage.setItem("comperssion_form_data", _s)
+	}
+	
+	function get_data(){
+		var comperssion_form_data = localStorage.getItem("comperssion_form_data")
+		if(isEmpty(comperssion_form_data) == false){
+			$('#calculator-form').html(comperssion_form_data)
+		}
+	}
+	
+	function isEmpty(a){
+		if (a === "") return true; 
+		if (a === "null") return true; 
+		if (a === "undefined") return true; 
+		if (!a && a !== 0 && a !=="") return true;
+		if (Array.prototype.isPrototypeOf(a) && a.length === 0 ) return true;
+		if (Object.prototype.isPrototypeOf(a) && Object.keys(a).length === 0 ) return true;  
+		return false;
+	}
+
+	function add_template(){
+		$('#calculator-form').append($('#template-form-input').html())
+	}
+	
+	function reduce_template(obj){
+		$(obj).parents('.calculator-input').remove()
+	}
+	
+	function calcultor(){
+		var tmp = [];
+		var data = [];
+		var term_target = 0;
+		var term_target_after = 0;
+		var term_target_after_cost = 0;
+		
+		$('#calculator-form input').each(function(){
+			
+			$(this).attr('value', $(this).val())
+			if($(this).attr('name') == 'term_target'){
+				term_target = $(this).val()
+				return
+			}
+			
+			if($(this).attr('name') == 'term_target_after'){
+				term_target_after = $(this).val()
+				return
+			}
+			
+			if($(this).attr('name') == 'term_target_after_cost'){
+				term_target_after_cost = $(this).val()
+				return
+			}
+			
+			tmp.push($(this).val())
+			if(tmp.length == 6){
+				data.push(tmp)
+				tmp = [];
+			}
+		})
+		
+		var crm_obj = new CRM;
+		for(var i in data){
+			if(isEmpty(data[i][0]) == false && isEmpty(data[i][1]) == false && isEmpty(data[i][2]) == false){
+				// crm_obj.add_data(data[i][0].toUpperCase(), data[i][1].toUpperCase(), parseInt(data[i][2]))
+				crm_obj.crm_list.push([data[i][0].toUpperCase(), data[i][1].toUpperCase(), parseInt(data[i][2]), parseInt(data[i][3]), parseInt(data[i][4]), parseInt(data[i][5])])
+			}
+		}
+		
+		var to_fixed_count = parseInt($('#to_fixed_count').val())
+		
+		// 生成crm图数据
+		crm_obj.to_fixed_count = to_fixed_count
+		console.log(crm_obj)
+		crm_obj.generate_graph()
+		
+		
+		var s = '';
+		
+		// 生成节点信息表
+		$('#results-tbody1 tr').each(function(){
+			$(this).remove()
+		})
+		for(var key in crm_obj.node_weight){
+			s = '<tr><td>${node_name}</td><td>${max}</td><td>${min}</td></tr>'.format({
+				node_name:key,
+				max:crm_obj.node_weight[key][0],
+				min:crm_obj.node_weight[key][1]
+			})
+			$('#results-tbody1').append(s);
+		}
+
+		$('#results-table1').show();
+		
+		
+		// 生成关键路径表
+		$('#results-tbody2 tr').each(function(){
+			$(this).remove()
+		})
+		for(var i in crm_obj.links){
+			if(crm_obj.links[i]['private']['iskey'] == true){
+				s = '<tr class="kay-path"><td>${source} - ${target}</td><td>${term}</td><td>${iskey}</td></tr>'.format({
+					source:crm_obj.links[i]['source'],
+					target:crm_obj.links[i]['target'],
+					term:crm_obj.links[i]['private']['term'],
+					iskey:'是'
+				})
+			}else{
+				s = '<tr><td>${source} - ${target}</td><td>${term}</td><td></td></tr>'.format({
+					source:crm_obj.links[i]['source'],
+					target:crm_obj.links[i]['target'],
+					term:crm_obj.links[i]['private']['term'],
+				})
+			}
+
+			$('#results-tbody2').append(s);
+		}
+		
+		$('#results-table2').show();
+		
+		draw_graph(crm_obj)
+		save_data()
+		
+		// 开始计算压缩部分
+		
+		var comp_obj = new COMP;
+		comp_obj.crm_links = crm_obj.links
+		comp_obj.form_data = data;
+		comp_obj.term_target = parseInt(term_target);
+		comp_obj.term_target_after = parseInt(term_target_after);
+		comp_obj.term_target_after_cost = parseInt(term_target_after_cost);
+		comp_obj.calculate();
+		console.log('ddddddd', comp_obj)
+		
+		
+		
+		var myrender = new MyRender()
+		myrender.parse_html($('#results-tbody3-template tbody').html())
+		for(var i in comp_obj.data){
+			if(comp_obj.data[i]['key_path'] == true){
+				$('#results-tbody3').append(myrender.render({
+					class: 'kay-path',
+					source: comp_obj.data[i]['source'],
+					target: comp_obj.data[i]['target'],
+					term_normal: comp_obj.data[i]['term_normal'],
+					term_comp: comp_obj.data[i]['term_comp'],
+					cost_normal: comp_obj.data[i]['cost_normal'],
+					cost_comp: comp_obj.data[i]['cost_comp'],
+					cost_avg: comp_obj.data[i]['cost_avg'],
+					cost_order: comp_obj.data[i]['cost_order'],
+					key_path: '是'
+				}));
+			}else{
+				$('#results-tbody3').append(myrender.render({
+					class: '',
+					source: comp_obj.data[i]['source'],
+					target: comp_obj.data[i]['target'],
+					term_normal: comp_obj.data[i]['term_normal'],
+					term_comp: comp_obj.data[i]['term_comp'],
+					cost_normal: comp_obj.data[i]['cost_normal'],
+					cost_comp: comp_obj.data[i]['cost_comp'],
+					cost_avg: comp_obj.data[i]['cost_avg'],
+					cost_order: comp_obj.data[i]['cost_order'],
+					key_path: '否'
+				}));
+			}
+		
+		}
+		$('#results-table3').show()
+		
+		
+		var myrender2 = new MyRender()
+		myrender2.parse_html($('#results-tbody4-template tbody').html())
+		for(var i in comp_obj.compression){
+			if(comp_obj.compression[i]['cost_marginal'] == true){
+				$('#results-tbody4').append(myrender2.render({
+					class: 'kay-path',
+					source: comp_obj.compression[i]['source'],
+					target: comp_obj.compression[i]['target'],
+					term_save: comp_obj.compression[i]['term_save'],
+					term_total: comp_obj.compression[i]['term_total'],
+					cost_comp_really: comp_obj.compression[i]['cost_comp_really'],
+					cost_comp_total: comp_obj.compression[i]['cost_comp_total'],
+					cost_compensation: comp_obj.compression[i]['cost_compensation'],
+					cost_really_total: comp_obj.compression[i]['cost_really_total'],
+				}));
+			}else{
+				$('#results-tbody4').append(myrender2.render({
+					class: '',
+					source: comp_obj.compression[i]['source'],
+					target: comp_obj.compression[i]['target'],
+					term_save: comp_obj.compression[i]['term_save'],
+					term_total: comp_obj.compression[i]['term_total'],
+					cost_comp_really: comp_obj.compression[i]['cost_comp_really'],
+					cost_comp_total: comp_obj.compression[i]['cost_comp_total'],
+					cost_compensation: comp_obj.compression[i]['cost_compensation'],
+					cost_really_total: comp_obj.compression[i]['cost_really_total'],
+				}));
+			}
+		
+		}
+		$('#results-table4').show()
+		$('#result-all').show()
+		
+		
+	}
+		
+	function draw_graph(crm_obj){
+		var myChart = echarts.init(document.getElementById('main-graph'));
+		var obj = crm_obj;
+		console.log(obj)
+		// 指定图表的配置项和数据
+		option = {
+		  title: {
+			text: 'CRM 关键路径图'
+		  },
+		  tooltip: {},
+		  animationDurationUpdate: 1500,
+		  animationEasingUpdate: 'quinticInOut',
+		  series: [
+			{
+			  type: 'graph',
+			  layout: 'none',
+			  symbolSize: 20,
+			  roam: true,
+			  label: {
+				show: true
+			  },
+			  edgeSymbol: ['circle', 'arrow'],
+			  edgeSymbolSize: [4, 10],
+			  edgeLabel: {
+				fontSize: 20
+			  },
+			  data: obj.data,
+			  links: obj.links,
+			  lineStyle: {
+				opacity: 0.9,
+				width: 2,
+				curveness: 0
+			  }
+			}
+		  ]
+		};
+
+	myChart.setOption(option);
+	}
+	
+	get_data()
+</script>
+</body>
+</html>

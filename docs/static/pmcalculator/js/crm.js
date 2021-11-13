@@ -11,6 +11,7 @@ function CRM(){
 	this.generate_target_node = _generate_target_node;
 	this.calculate_path = _calculate_path;
 	this.convert_num = _convert_num;
+	this.get_target_num = _get_target_num;
 	
 	this.to_fixed_count = 0; 	// 默认小数精度
 	
@@ -49,6 +50,16 @@ function _generate_target_node(source, target, term){
 	var target_node_info = this.get_node_data_info(target);
 	
 	if (target_node_info !== null){
+		if (target_node_info['x'] <= source_node_info['x']){
+			for (var i in this.data){
+				if (this.data[i]['name'] === target_node_info['name']){
+					this.data[i]['x'] = this.bigest['x'] + this.base_location
+					target_node_info = this.data[i];
+					break;
+				}
+			}
+			
+		}
 		return target_node_info
 	}
 	
@@ -61,7 +72,7 @@ function _generate_target_node(source, target, term){
 	
 	if (source_node_info !== null){
 		var _links = this.get_node_links_info(source);
-		target_node_info['x'] = this.bigest['x'] + this.base_location;
+		target_node_info['x'] = this.bigest['x'] + this.base_location + (this.base_location * this.get_target_num(target));
 		target_node_info['y'] = source_node_info['y'] + source_node_info['y'] * _links.length;
 		
 		if(source_node_info['y'] == target_node_info['y']){
@@ -280,4 +291,15 @@ function _calculate_path(){
 	for(var i in this.data){
 		this.data[i]['value'] = this.node_weight[this.data[i]['name']].join(', ')
 	}
+}
+
+
+function _get_target_num(target){
+	var count = 0;
+	for (var i in this.crm_list){
+		if (target === this.crm_list[i][1]){
+			count += 1;
+		}
+	}
+	return count
 }

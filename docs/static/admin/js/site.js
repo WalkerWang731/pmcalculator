@@ -12,7 +12,7 @@ NProgress.configure({parent : 'body'}).start();   //页面加载进度条
 $(document).ready(function (){
     setHeaderNav($('.admin-header') , $('.admin-header .list li > dl')); //头部悬浮栏 设置不超出
     // setHeaderNav($('.admin-page') , $('.admin-page .btn .list'));
-    // setMenuOff();  //改变分辨率改变是否显示菜单
+    setMenuOff();  //改变分辨率改变是否显示菜单
     headerNavHoverBar(); //头部菜单悬浮特效
     leftNavClick(); //左侧菜单展示子类
     leftNavBar(); //左侧菜单栏悬浮bar
