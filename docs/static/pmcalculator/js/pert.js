@@ -119,11 +119,17 @@ function _get_range(){
 			continue
 		}
 	}
-	console.log(_range, _range[1][1], _range[0][1])
-	if(_range[0] == null){
-		this.probability_range = '成功率大于 ' + _range[0][1] + '%'
-	}else if(_range[1] == null){
-		this.probability_range = '成功率小于 ' + _range[1][1] + '%'
+	if (_range[0] == null){
+		_range[0] = [-3, 0.5]
+	}
+	if (_range[1] == null){
+		_range[1] = [3, 99.5]
+	}
+	console.log('_range', _range)
+	if(_range[0][1] == 99.5){
+		this.probability_range = '成功率大于 ' + _range[1][1] + '%'
+	}else if(_range[1][1] == 0.5){
+		this.probability_range = '成功率小于 ' + _range[0][1] + '%'
 	}else{
 		this.probability_range = '成功率大于 ' + _range[0][1] + '%, 小于 ' + _range[1][1] + '%'
 	}

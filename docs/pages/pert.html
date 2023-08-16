@@ -232,6 +232,7 @@
 		var term_target = 0;
 		if (json_data_enable === 'true'){
 			data = JSON_DATA;
+			term_target = $('#term_target').val()
 		}else{
 			$('#calculator-form input').each(function(){
 				$(this).attr('value', $(this).val())
@@ -251,6 +252,7 @@
 		var pert_obj = new PERT()
 		pert_obj.to_fixed_count = to_fixed_count;
 		pert_obj.term_target = term_target;
+		console.log('term_target', term_target)
 		
 		for(var i in data){
 			pert_obj.add_data(data[i]);
@@ -265,6 +267,7 @@
 		create_crm(crm_obj)
 
 		var myrender = new MyRender()
+		$('#results-tbody2').html('')
 		myrender.parse_html($('#results-tbody2-template tbody').html())
 		for(var i in crm_obj.links){
 			if(crm_obj.links[i]['private']['iskey'] == true){
