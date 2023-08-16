@@ -50,6 +50,7 @@
 		    <div class="layui-input-block">
 		      <a class="layui-btn" onclick="calcultor()">计算</a>
 		      <a class="layui-btn layui-btn-primary" onclick="reset()">重置</a>
+			  <a class="layui-btn" onclick="calcultor_json_data()">计算JSON</a>
 		    </div>
 		  </div>
 		</form>
@@ -117,6 +118,11 @@
 <script type="text/javascript" src="../static/echarts/echarts.js"></script>
 <script type="text/javascript" src="../static/pmcalculator/js/crm.js" ></script>
 <script type="text/javascript">
+
+	function calcultor_json_data(){
+		calcultor('true')
+	}
+		
 	function reset(){
 		localStorage.removeItem("crm_form_data")
 		location.reload()
@@ -152,18 +158,22 @@
 		$(obj).parents('.calculator-input').remove()
 	}
 	
-	function calcultor(){
+	function calcultor(json_data_enable='false'){
 		var tmp = [];
 		var data = [];
-		$('#calculator-form input').each(function(){
-			tmp.push($(this).val())
-			$(this).attr('value', $(this).val())
-			if(tmp.length == 3){
-				data.push(tmp)
-				tmp = [];
-			}
-		})
-		
+		if (json_data_enable === 'true'){
+			data = JSON_DATA;
+		}else{
+			$('#calculator-form input').each(function(){
+				tmp.push($(this).val())
+				$(this).attr('value', $(this).val())
+				if(tmp.length == 3){
+					data.push(tmp)
+					tmp = [];
+				}
+			})
+		}
+		console.log(data)
 		var crm_obj = new CRM;
 		for(var i in data){
 			if(isEmpty(data[i][0]) == false && isEmpty(data[i][1]) == false && isEmpty(data[i][2]) == false){

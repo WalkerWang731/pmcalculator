@@ -75,6 +75,7 @@
 		    <div class="layui-input-block">
 		      <a class="layui-btn" onclick="calcultor()">计算</a>
 		      <a class="layui-btn layui-btn-primary" onclick="reset()">重置</a>
+			  <a class="layui-btn" onclick="calcultor_json_data()">计算JSON</a>
 		    </div>
 		  </div>
 		</form>
@@ -192,6 +193,10 @@
 		location.reload()
 	}
 	
+	function calcultor_json_data(){
+		calcultor('true')
+	}
+	
 	function save_data(){
 		var _s = $('#calculator-form').html().replace(/[\r\n\t]/g,"");
 		return localStorage.setItem("pert_form_data", _s)
@@ -222,27 +227,32 @@
 		$(obj).parents('.calculator-input').remove()
 	}
 	
-	function calcultor(){
+	function calcultor(json_data_enable='false'){
 		var tmp = [];
 		var data = [];
 		var term_target = 0;
-		$('#calculator-form input').each(function(){
-			$(this).attr('value', $(this).val())
-			if($(this).attr('name') == 'term_target'){
-				term_target = $(this).val()
-				return
-			}
-			tmp.push($(this).val())
-			if(tmp.length == 5){
-				data.push(tmp)
-				tmp = [];
-			}
-		})
+		if (json_data_enable === 'true'){
+			data = JSON_DATA;
+		}else{
+			$('#calculator-form input').each(function(){
+				$(this).attr('value', $(this).val())
+				if($(this).attr('name') == 'term_target'){
+					term_target = $(this).val()
+					return
+				}
+				tmp.push($(this).val())
+				if(tmp.length == 5){
+					data.push(tmp)
+					tmp = [];
+				}
+			})
+		}
+		console.log(data)
 		var to_fixed_count = parseInt($('#to_fixed_count').val())
 		var pert_obj = new PERT()
 		pert_obj.to_fixed_count = to_fixed_count;
 		pert_obj.term_target = term_target;
-		console.log(data)
+		
 		for(var i in data){
 			pert_obj.add_data(data[i]);
 		}
