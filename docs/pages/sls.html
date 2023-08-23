@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SLS</title>
+    <link type="text/css" rel="stylesheet" href="../static/layui/css/layui.css" />
+	<link type="text/css" rel="stylesheet" href="../static/pmcalculator/css/main.css" />
+</head>
+<body>
+	<div id="main-div">
+		<form class="layui-form" action="" id="calculator-form">
+			<div class="layui-form-item">
+			    <label class="layui-form-label" style="width: 120px;">日志存量</label>
+			    <div class="layui-input-inline">
+			      <input type="text" name="sls_storage_size" placeholder="" autocomplete="off" class="layui-input" id="sls_storage_size">
+			    </div>
+			    <div class="layui-form-mid layui-word-aux">单位GB</div>
+			  </div>
+			  
+			  <div class="layui-form-item">
+			    <label class="layui-form-label" style="width: 120px;">迁移速率</label>
+			    <div class="layui-input-inline">
+			      <input type="text" name="migrate_rate" placeholder="" autocomplete="off" class="layui-input" id="migrate_rate">
+			    </div>
+			    <div class="layui-form-mid layui-word-aux">单位MB/s</div>
+			  </div>
+			  
+			  <div class="layui-form-item">
+			    <label class="layui-form-label" style="width: 120px;">每日新增数据</label>
+			    <div class="layui-input-inline">
+			      <input type="text" name="daily_increased" placeholder="" autocomplete="off" class="layui-input" id="daily_increased">
+			    </div>
+			    <div class="layui-form-mid layui-word-aux">单位GB/s</div>
+			  </div>
+			  
+			  <div class="layui-form-item">
+			    <div class="layui-input-block">
+			      <a class="layui-btn" onclick="calcultor()">计算</a>
+			      <a class="layui-btn layui-btn-primary" onclick="reset()">重置</a>
+			    </div>
+			  </div>
+			</form>
+		</form>
+		
+		
+		<blockquote class="layui-elem-quote" id="result" style="display: none;">
+			<p>理论每天迁移量(GB): <span class="font-red font-bold" id="result_daily_migration_size"></span></p>
+			<p>理论迁移完成时间(天): <span class="font-red font-bold" id="result_complete_time"></span></p>
+			<p>30天可迁移历史天数: <span class="font-red font-bold" id="result_30d_volume"></span></p>
+			<p>30天内是否可以迁移完成: <span class="font-red font-bold" id="result_30d_finished"></span></p>
+		</blockquote>
+		
+		
+	</div>
+<script type="text/javascript" src="../static/jquery/jquery-3.4.1.js"></script>
+<script type="text/javascript" src="../static/layui/layui.all.js"></script>
+<script type="text/javascript" src="../static/echarts/echarts.js"></script>
+<script>
+	function calcultor(){
+		var data = [];
+		var sls_storage_size = parseFloat($('#sls_storage_size').val())
+		var migrate_rate = parseFloat($('#migrate_rate').val()) / 1024
+		var daily_increased = parseFloat($('#daily_increased').val())
+		
+		var result_daily_migration_size = migrate_rate * 86400
+		var result_complete_time = 0
+		var result_30d_volume = 0
+		var result_30d_finished = '否'
+		
+		if (result_daily_migration_size <= daily_increased){
+			result_complete_time = 'infinity'
+		}else{
+			result_complete_time = sls_storage_size / (result_daily_migration_size - daily_increased)
+		}
+		
+		result_30d_volume = ((result_daily_migration_size * 30) - (daily_increased * 30)) / daily_increased
+		if (((result_daily_migration_size * 30) - (daily_increased * 30)) > sls_storage_size){
+			result_30d_finished = '是'
+		}
+		
+		$('#result').show()
+		$('#result_daily_migration_size').text(result_daily_migration_size)
+		$('#result_complete_time').text(result_complete_time)
+		$('#result_30d_volume').text(result_30d_volume)
+		$('#result_30d_finished').text(result_30d_finished)
+		
+	}
+</script>
+
+</body>
+</html>
